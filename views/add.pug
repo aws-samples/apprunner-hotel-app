@@ -1,0 +1,43 @@
+extends layout 
+
+block content
+  nav.navbar.navbar-expand-lg.navbar-light.bg-primary(style='margin-top: 10px;')
+    .container-fluid
+      a.navbar-brand(href='#')
+        img.d-inline-block.align-text-top(src='https://upload.wikimedia.org/wikipedia/commons/9/93/Amazon_Web_Services_Logo.svg' alt='' width='30' height='24')
+        span(style='margin-left: 10px;') AWS Hotel
+      button.navbar-toggler(type='button' data-bs-toggle='collapse' data-bs-target='#navbarNav' aria-controls='navbarNav' aria-expanded='false' aria-label='Toggle navigation')
+        span.navbar-toggler-icon
+      #navbarNav.collapse.navbar-collapse
+        ul.navbar-nav
+          li.nav-item
+          a.nav-link.active(href='/') Home
+          li.nav-item
+            a.nav-link(href='/rooms') Rooms
+          li.nav-item
+            a.nav-link(href='/add') Add
+          li.nav-item
+            a.nav-link(href='/create') Create
+
+  h2(style='margin-left: 15px; margin-top: 15px;') #{title}
+  form(name="add-room", method="post")
+        div.input
+          div.mb-3
+            label.form-label(for='roomNumber' style='margin-left: 15px;') Room number
+            input#roomNumber.form-control(name='roomNumber' type='text' placeholder='#100' style='margin-left: 15px; width: 50%' required="")
+        p 
+        div.input
+            label.form-label(for='floorNumber' style='margin-left: 15px;') Floor number
+            input#floorNumber.form-control(name='floorNumber' type='number' placeholder='Max 10 floors' style='margin-left: 15px; width: 50%')
+        p
+        div.select
+          label.form-label(for='goodView' style='margin-left: 15px;') Good View
+          select.form-select(name='hasView' for='goodView' aria-label='Default select example' style='margin-left: 15px; width: 50%' required="")
+            option(value=1) Yes
+            option(value=0) No
+        p
+        div.actions
+          button.btn.btn-primary(type='submit' style='margin-left: 15px;') Add room
+  if result
+    div.results
+        p(style='margin-left: 15px; margin-top: 15px;') Room number #{result.roomId} added

@@ -1,0 +1,44 @@
+
+h1 {
+  font: 50px bold Verdana, sans-serif;
+  color: #21618c;
+}
+
+h2 {
+  font: 36px bold "Lucida Grande", Helvetica, Arial, sans-serif;
+}
+
+body {
+  padding: 5px;
+  font: 16px "Lucida Grande", Helvetica, Arial, sans-serif;
+}
+
+em {
+  color: #00B7FF;
+}
+
+table{
+  border:3px solid  #566573;
+  border-collapse:collapse;
+  text-align: center;
+  width: 70%;
+}
+
+table td{
+  border:2px solid #566573;
+}
+
+table th{
+  border:2px solid #566573;
+}
+
+thead{
+  background-color: #aed6f1;
+}
+
+tbody tr:nth-child(even){
+    background-color: #f8f9f9;
+}
+tbody tr:nth-child(odd){
+    background-color: #fef9e7;
+}

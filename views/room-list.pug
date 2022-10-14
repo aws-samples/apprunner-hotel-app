@@ -1,0 +1,44 @@
+extends layout
+
+block content
+  nav.navbar.navbar-expand-lg.navbar-light.bg-primary(style='margin-top: 10px;')
+    .container-fluid
+      a.navbar-brand(href='#')
+        img.d-inline-block.align-text-top(src='https://upload.wikimedia.org/wikipedia/commons/9/93/Amazon_Web_Services_Logo.svg' alt='' width='30' height='24')
+        span(style='margin-left: 10px;') AWS Hotel
+      button.navbar-toggler(type='button' data-bs-toggle='collapse' data-bs-target='#navbarNav' aria-controls='navbarNav' aria-expanded='false' aria-label='Toggle navigation')
+        span.navbar-toggler-icon
+      #navbarNav.collapse.navbar-collapse
+        ul.navbar-nav
+          li.nav-item
+          a.nav-link.active(href='/') Home
+          li.nav-item
+            a.nav-link(href='/rooms') Rooms
+          li.nav-item
+            a.nav-link(href='/add') Add
+          li.nav-item
+            a.nav-link(href='/create') Create
+
+  p
+  .alert.alert-info(style='margin: auto; width: 80%', role='alert') Rooms stored in database: #{url}
+  p
+  h2(style='text-align: center;') Rooms List
+
+  table.table.table-striped.table-hover(style='margin-left: auto; margin-right: auto; width: 60%;')
+    thead.table-primary
+      tr
+        th(scope='col') #
+        th(scope='col') Room Number
+        th(scope='col') Floor Number
+        th(scope='col') Good View
+    tbody
+      each room, i in rooms
+        tr
+          th(scope='row')= i+1
+          td= room.id
+          td= room.floor
+          td
+            if(room.hasView == 1)
+              span.badge.rounded-pill.bg-success Yes
+            else
+              span.badge.rounded-pill.bg-danger No

@@ -1,0 +1,445 @@
+#
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: MIT-0
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy of this
+# software and associated documentation files (the "Software"), to deal in the Software
+# without restriction, including without limitation the rights to use, copy, modify,
+# merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+# permit persons to whom the Software is furnished to do so.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+# INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+# PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+# HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+# OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+#
+# AppRunner-Hotel-App
+#
+# This template will create:
+#   * [Network] A VPC 
+#   * [Network] Three Public Subnets (in 3 IAD AZs)
+#   * [Network] Three Private Subnets (in 3 IAD AZs)
+#   * [Network] An Internet Gateway (with routes to it from the public subnets)
+#   * [Network] A NAT Gateway (with routes to it from the priavte subnets)
+#   * [Network] A VPC endpoint for AWS Secrets Manager (for private connection between VPC and Secrets Manager)
+#   * [Network] A Security Group for the App Runner service (allows egress traffic to the RDS database security group)
+#   * [Network] A Security Group for the RDS database (allows ingress traffic from the App Runner service security group)
+#   * [Network] A Security Group for the Secrets Manager VPC Endpoint (allows ingress traffic from the App Runner security group)
+#   * [Network] A Security Group for the Secrets Manager rotation Lambda to connect to RDS
+#   * [RDS] A private RDS Aurora database
+#   * [RDS] Store username/password in Secrets Manager with rotation enabled
+#   * [App Runner] ECR Access Role (if using a public ECR image, you don't need this role, but creating it anyway)
+#   * [App Runner] SLR stand-in role (our public SLR policy hasn't been updated yet, so using this manually created role as a stand-in)
+#   * [App Runner] VPC Connector between App Runner service and RDS database
+
+Transform: AWS::SecretsManager-2020-07-23
+
+Resources:
+  AppRunnerV2NPrototypeVPC:
+    Type: 'AWS::EC2::VPC'
+    Properties:
+      CidrBlock: 172.31.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags: 
+        - Key: "Name"
+          Value: "AppRunnerV2NPrototypeVPC"
+ 
+  PublicSubnet1:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref AppRunnerV2NPrototypeVPC
+      AvailabilityZone: us-east-1a
+      CidrBlock: 172.31.0.0/24
+      MapPublicIpOnLaunch: false
+      Tags: 
+        - Key: "Name"
+          Value: "AppRunnerV2NPrototype-PublicSubnet-1a"
+ 
+  PublicSubnet2:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref AppRunnerV2NPrototypeVPC
+      AvailabilityZone: us-east-1b
+      CidrBlock: 172.31.1.0/24
+      MapPublicIpOnLaunch: false
+      Tags: 
+        - Key: "Name"
+          Value: "AppRunnerV2NPrototype-PublicSubnet-1b"
+  
+  PublicSubnet3:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref AppRunnerV2NPrototypeVPC
+      AvailabilityZone: us-east-1c
+      CidrBlock: 172.31.2.0/24
+      MapPublicIpOnLaunch: false
+      Tags: 
+        - Key: "Name"
+          Value: "AppRunnerV2NPrototype-PublicSubnet-1c"
+    
+  PrivateSubnet1:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref AppRunnerV2NPrototypeVPC
+      AvailabilityZone: us-east-1a
+      CidrBlock: 172.31.3.0/24
+      MapPublicIpOnLaunch: false
+      Tags: 
+        - Key: "Name"
+          Value: "AppRunnerV2NPrototype-PrivateSubnet-1a"
+ 
+  PrivateSubnet2:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref AppRunnerV2NPrototypeVPC
+      AvailabilityZone: us-east-1b
+      CidrBlock: 172.31.4.0/24
+      MapPublicIpOnLaunch: false  
+      Tags: 
+        - Key: "Name"
+          Value: "AppRunnerV2NPrototype-PrivateSubnet-1b"
+
+  PrivateSubnet3:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref AppRunnerV2NPrototypeVPC
+      AvailabilityZone: us-east-1c
+      CidrBlock: 172.31.5.0/24
+      MapPublicIpOnLaunch: false  
+      Tags: 
+        - Key: "Name"
+          Value: "AppRunnerV2NPrototype-PrivateSubnet-1c"
+
+  InternetGateway:
+    Type: 'AWS::EC2::InternetGateway'
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Join [_, [!Ref 'AWS::StackName']]
+        - Key: Network
+          Value: Public
+  
+  GatewayToInternet:
+    Type: 'AWS::EC2::VPCGatewayAttachment'
+    Properties:
+      VpcId: !Ref AppRunnerV2NPrototypeVPC
+      InternetGatewayId: !Ref InternetGateway
+  
+  PublicRouteTable:
+    Type: 'AWS::EC2::RouteTable'
+    Properties:
+      VpcId: !Ref AppRunnerV2NPrototypeVPC
+      Tags:
+        - Key: Network
+          Value: Public
+  
+  PublicRoute:
+    Type: 'AWS::EC2::Route'
+    DependsOn: GatewayToInternet
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+ 
+  PublicSubnet1RouteTableAssociation:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId: !Ref PublicSubnet1
+      RouteTableId: !Ref PublicRouteTable
+ 
+  PublicSubnet2RouteTableAssociation:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId: !Ref PublicSubnet2
+      RouteTableId: !Ref PublicRouteTable
+
+  PublicSubnet3RouteTableAssociation:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId: !Ref PublicSubnet3
+      RouteTableId: !Ref PublicRouteTable
+
+  NatGateway:
+    Type: "AWS::EC2::NatGateway"
+    DependsOn: NatPublicIP
+    Properties: 
+      AllocationId: !GetAtt NatPublicIP.AllocationId
+      SubnetId: !Ref PublicSubnet1
+ 
+  NatPublicIP:
+    Type: "AWS::EC2::EIP"
+    DependsOn: AppRunnerV2NPrototypeVPC
+    Properties:
+      Domain: vpc
+
+  PrivateRouteTable:
+    Type: 'AWS::EC2::RouteTable'
+    Properties:
+      VpcId: !Ref AppRunnerV2NPrototypeVPC
+      Tags:
+        - Key: Network
+          Value: Private
+  
+  PrivateRoute:
+    Type: 'AWS::EC2::Route'
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGateway
+ 
+  PrivateSubnet1RouteTableAssociation:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId: !Ref PrivateSubnet1
+      RouteTableId: !Ref PrivateRouteTable
+ 
+  PrivateSubnet2RouteTableAssociation:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId: !Ref PrivateSubnet2
+      RouteTableId: !Ref PrivateRouteTable
+
+  PrivateSubnet3RouteTableAssociation:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId: !Ref PrivateSubnet3
+      RouteTableId: !Ref PrivateRouteTable
+
+  AppRunnerServiceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow egress traffic from AppRunner Service via VPC Connector
+      GroupName: AppRunnerV2NPrototype-Service-SG
+      VpcId: !Ref AppRunnerV2NPrototypeVPC
+      Tags: 
+        - Key: "Name"
+          Value: "AppRunnerV2NPrototype-Service-SG"
+  
+  RDSSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow ingress traffic from AppRunner service
+      GroupName: AppRunnerV2NPrototype-RDS-SG
+      VpcId: !Ref AppRunnerV2NPrototypeVPC
+      Tags: 
+        - Key: "Name"
+          Value: "AppRunnerV2NPrototype-RDS-SG"
+  
+  RDSSecurityGroupEgress:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      GroupId: !Ref RDSSecurityGroup
+      Description: Allow all outbound traffic
+      IpProtocol: "-1"
+      CidrIp: 0.0.0.0/0
+
+  
+  SecretRotationLambdaSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow egress traffic to RDS database
+      GroupName: AppRunnerV2NPrototype-SecretRotation-SG
+      VpcId: !Ref AppRunnerV2NPrototypeVPC
+      Tags: 
+        - Key: "Name"
+          Value: "AppRunnerV2NPrototype-SecretRotation-SG"
+
+  RDSSecurityGroupIngressFromAppRunnerService:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref RDSSecurityGroup
+      Description: Allow inbound traffic to the DB from AppRunner
+      IpProtocol: "tcp"
+      FromPort: 3306
+      ToPort: 3306
+      SourceSecurityGroupId: !Ref AppRunnerServiceSecurityGroup
+
+  RDSSecurityGroupIngressFromRotationLambda:
+    Type: 'AWS::EC2::SecurityGroupIngress'
+    DependsOn: RDSSecurityGroup
+    Properties:
+      GroupId: !Ref RDSSecurityGroup
+      Description: Allow inbound traffic to the DB from Secrets Manager rotation Lambda
+      IpProtocol: tcp
+      FromPort: 3306
+      ToPort: 3306
+      SourceSecurityGroupId: !Ref SecretRotationLambdaSecurityGroup
+  
+  AppRunnerServiceSecurityGroupEgress:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      GroupId: !Ref AppRunnerServiceSecurityGroup
+      Description: Allow all outbound traffic
+      IpProtocol: "-1"
+      CidrIp: 0.0.0.0/0
+
+  AppRunnerServiceConnector:
+    Type: AWS::AppRunner::VpcConnector
+    Properties: 
+      SecurityGroups: 
+        - !Ref AppRunnerServiceSecurityGroup
+      Subnets: 
+        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
+        - !Ref PrivateSubnet3
+      VpcConnectorName: AppRunnerV2NPrototype-RDS-Connector
+
+  DBSubnetGroup:
+    Type: 'AWS::RDS::DBSubnetGroup'
+    Properties:
+      DBSubnetGroupDescription: !Ref 'AWS::StackName'
+      SubnetIds: 
+        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
+        - !Ref PrivateSubnet3
+
+  AuroraDBSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Description: This is my rds instance secret
+      GenerateSecretString:
+        SecretStringTemplate: '{"username": "apprunner"}'
+        GenerateStringKey: password
+        PasswordLength: 32
+        ExcludeCharacters: "/@\"'\\"
+  
+  SecretRDSInstanceAttachment:
+    Type: AWS::SecretsManager::SecretTargetAttachment
+    Properties:
+      SecretId:
+        Ref: AuroraDBSecret
+      TargetId:
+        Ref: AuroraDBCluster
+      TargetType: AWS::RDS::DBCluster
+
+  MySecretRotationSchedule:
+    Type: AWS::SecretsManager::RotationSchedule
+    DependsOn: SecretRDSInstanceAttachment
+    Properties:
+      SecretId:
+        Ref: AuroraDBSecret
+      HostedRotationLambda:
+        RotationType: MySQLSingleUser
+        RotationLambdaName: SecretsManagerRotation
+        VpcSecurityGroupIds: 
+          Fn::Join:
+          - ","
+          - - Ref: SecretRotationLambdaSecurityGroup
+        VpcSubnetIds:
+          Fn::Join:
+          - ","
+          - - Ref: PrivateSubnet1
+            - Ref: PrivateSubnet2
+            - Ref: PrivateSubnet3
+      RotationRules:
+        Duration: 2h
+        ScheduleExpression: 'cron(0 8 1 * ? *)'
+
+  AuroraDBCluster:
+    Type: AWS::RDS::DBCluster
+    Properties:
+      Engine: aurora-mysql
+      EngineVersion: "5.7"
+      DatabaseName: v2nPrototypeDB
+      Port: 3306
+      MasterUsername:
+        Fn::Sub: "{{resolve:secretsmanager:${AuroraDBSecret}::username}}"
+      MasterUserPassword:
+        Fn::Sub: "{{resolve:secretsmanager:${AuroraDBSecret}::password}}"
+      DBSubnetGroupName: !Ref DBSubnetGroup
+      VpcSecurityGroupIds:
+        - !Ref RDSSecurityGroup
+      StorageEncrypted: true
+      Tags: 
+        - Key: "Name"
+          Value: "AppRunnerV2NPrototype-RDSDBCluster"
+
+  AuroraDBFirstInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceClass: "db.t4g.medium"
+      DBClusterIdentifier: !Ref AuroraDBCluster  
+      Engine: aurora-mysql
+      EngineVersion: "5.7"
+      DBSubnetGroupName: !Ref DBSubnetGroup
+      PubliclyAccessible: false
+
+  AppRunnerECRAccessRole: 
+    Type: AWS::IAM::Role
+    Properties: 
+      RoleName: "AppRunnerV2NPrototypeECRAccessRoleIAD"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement: 
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - build.apprunner.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      ManagedPolicyArns: 
+        - "arn:aws:iam::aws:policy/service-role/AWSAppRunnerServicePolicyForECRAccess"
+
+  AppRunnerInstanceRole: 
+    Type: AWS::IAM::Role
+    Properties: 
+      RoleName: "AppRunnerV2NInstanceRole"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement: 
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - tasks.apprunner.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      Policies:
+       - PolicyName: AppRunnerVPCNetworkingPermissions
+         PolicyDocument:
+           Version: "2012-10-17"
+           Statement:
+             - Effect: Allow
+               Action:
+                 - "ec2:CreateNetworkInterface"
+                 - "ec2:DeleteNetworkInterface"
+                 - "ec2:DescribeNetworkInterfaces"
+                 - "ec2:DescribeSecurityGroups"
+                 - "ec2:DescribeSubnets"
+                 - "ec2:DescribeVpcs"
+                 - "ec2:DescribeDhcpOptions"
+                 - "ec2:CreateTags"
+               Resource: '*'
+       - PolicyName: AppRunnerServiceRolePolicy
+         PolicyDocument:
+           Version: "2012-10-17"
+           Statement:
+             - Effect: Allow
+               Action:
+                 - "logs:CreateLogGroup"
+                 - "logs:PutRetentionPolicy"
+               Resource: "arn:aws:logs:*:*:log-group:/aws/apprunner/*"
+             - Effect: Allow
+               Action:
+                 - "logs:CreateLogStream"
+                 - "logs:PutLogEvents"
+                 - "logs:DescribeLogStreams"
+               Resource: "arn:aws:logs:*:*:log-group:/aws/apprunner/*:log-stream:*"
+             - Effect: Allow
+               Action:
+                 - "events:PutRule"
+                 - "events:PutTargets"
+                 - "events:DeleteRule"
+                 - "events:RemoveTargets"
+                 - "events:DescribeRule"
+                 - "events:EnableRule"
+                 - "events:DisableRule"
+               Resource: "arn:aws:events:*:*:rule/AWSAppRunnerManagedRule*"
+             - Effect: Allow
+               Action:
+                 - "secretsmanager:GetSecretValue"
+               Resource: !Ref AuroraDBSecret
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess"
