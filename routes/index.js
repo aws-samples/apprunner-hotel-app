@@ -21,7 +21,7 @@ var router = express.Router();
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  res.render('index', { title: 'AP Hotel' });
+  res.render('index', { title: 'AWS App Runner Hotel' });
 });
 
 module.exports = router;

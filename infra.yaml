@@ -19,8 +19,8 @@
 #
 # This template will create:
 #   * [Network] A VPC 
-#   * [Network] Three Public Subnets (in 3 IAD AZs)
-#   * [Network] Three Private Subnets (in 3 IAD AZs)
+#   * [Network] Three Public Subnets (in 3 AZs)
+#   * [Network] Three Private Subnets (in 3 AZs)
 #   * [Network] An Internet Gateway (with routes to it from the public subnets)
 #   * [Network] A NAT Gateway (with routes to it from the priavte subnets)
 #   * [Network] A VPC endpoint for AWS Secrets Manager (for private connection between VPC and Secrets Manager)
@@ -37,7 +37,7 @@
 Transform: AWS::SecretsManager-2020-07-23
 
 Resources:
-  AppRunnerV2NPrototypeVPC:
+  AppRunnerHotelAppVPC:
     Type: 'AWS::EC2::VPC'
     Properties:
       CidrBlock: 172.31.0.0/16
@@ -45,73 +45,85 @@ Resources:
       EnableDnsHostnames: true
       Tags: 
         - Key: "Name"
-          Value: "AppRunnerV2NPrototypeVPC"
+          Value: "AppRunnerHotelAppVPC"
  
   PublicSubnet1:
     Type: 'AWS::EC2::Subnet'
     Properties:
-      VpcId: !Ref AppRunnerV2NPrototypeVPC
-      AvailabilityZone: us-east-1a
+      VpcId: !Ref AppRunnerHotelAppVPC
+      AvailabilityZone: !Select
+        - 0
+        - Fn::GetAZs: !Ref 'AWS::Region'
       CidrBlock: 172.31.0.0/24
       MapPublicIpOnLaunch: false
       Tags: 
         - Key: "Name"
-          Value: "AppRunnerV2NPrototype-PublicSubnet-1a"
+          Value: "AppRunnerHotelApp-PublicSubnet-1"
  
   PublicSubnet2:
     Type: 'AWS::EC2::Subnet'
     Properties:
-      VpcId: !Ref AppRunnerV2NPrototypeVPC
-      AvailabilityZone: us-east-1b
+      VpcId: !Ref AppRunnerHotelAppVPC
+      AvailabilityZone: !Select
+        - 1
+        - Fn::GetAZs: !Ref 'AWS::Region'
       CidrBlock: 172.31.1.0/24
       MapPublicIpOnLaunch: false
       Tags: 
         - Key: "Name"
-          Value: "AppRunnerV2NPrototype-PublicSubnet-1b"
+          Value: "AppRunnerHotelApp-PublicSubnet-2"
   
   PublicSubnet3:
     Type: 'AWS::EC2::Subnet'
     Properties:
-      VpcId: !Ref AppRunnerV2NPrototypeVPC
-      AvailabilityZone: us-east-1c
+      VpcId: !Ref AppRunnerHotelAppVPC
+      AvailabilityZone: !Select
+        - 2
+        - Fn::GetAZs: !Ref 'AWS::Region'
       CidrBlock: 172.31.2.0/24
       MapPublicIpOnLaunch: false
       Tags: 
         - Key: "Name"
-          Value: "AppRunnerV2NPrototype-PublicSubnet-1c"
+          Value: "AppRunnerHotelApp-PublicSubnet-3"
     
   PrivateSubnet1:
     Type: 'AWS::EC2::Subnet'
     Properties:
-      VpcId: !Ref AppRunnerV2NPrototypeVPC
-      AvailabilityZone: us-east-1a
+      VpcId: !Ref AppRunnerHotelAppVPC
+      AvailabilityZone: !Select
+        - 0
+        - Fn::GetAZs: !Ref 'AWS::Region'
       CidrBlock: 172.31.3.0/24
       MapPublicIpOnLaunch: false
       Tags: 
         - Key: "Name"
-          Value: "AppRunnerV2NPrototype-PrivateSubnet-1a"
+          Value: "AppRunnerHotelApp-PrivateSubnet-1"
  
   PrivateSubnet2:
     Type: 'AWS::EC2::Subnet'
     Properties:
-      VpcId: !Ref AppRunnerV2NPrototypeVPC
-      AvailabilityZone: us-east-1b
+      VpcId: !Ref AppRunnerHotelAppVPC
+      AvailabilityZone: !Select
+        - 1
+        - Fn::GetAZs: !Ref 'AWS::Region'
       CidrBlock: 172.31.4.0/24
       MapPublicIpOnLaunch: false  
       Tags: 
         - Key: "Name"
-          Value: "AppRunnerV2NPrototype-PrivateSubnet-1b"
+          Value: "AppRunnerHotelApp-PrivateSubnet-2"
 
   PrivateSubnet3:
     Type: 'AWS::EC2::Subnet'
     Properties:
-      VpcId: !Ref AppRunnerV2NPrototypeVPC
-      AvailabilityZone: us-east-1c
+      VpcId: !Ref AppRunnerHotelAppVPC
+      AvailabilityZone: !Select
+        - 2
+        - Fn::GetAZs: !Ref 'AWS::Region'
       CidrBlock: 172.31.5.0/24
       MapPublicIpOnLaunch: false  
       Tags: 
         - Key: "Name"
-          Value: "AppRunnerV2NPrototype-PrivateSubnet-1c"
+          Value: "AppRunnerHotelApp-PrivateSubnet-3"
 
   InternetGateway:
     Type: 'AWS::EC2::InternetGateway'
@@ -125,13 +137,13 @@ Resources:
   GatewayToInternet:
     Type: 'AWS::EC2::VPCGatewayAttachment'
     Properties:
-      VpcId: !Ref AppRunnerV2NPrototypeVPC
+      VpcId: !Ref AppRunnerHotelAppVPC
       InternetGatewayId: !Ref InternetGateway
   
   PublicRouteTable:
     Type: 'AWS::EC2::RouteTable'
     Properties:
-      VpcId: !Ref AppRunnerV2NPrototypeVPC
+      VpcId: !Ref AppRunnerHotelAppVPC
       Tags:
         - Key: Network
           Value: Public
@@ -171,14 +183,14 @@ Resources:
  
   NatPublicIP:
     Type: "AWS::EC2::EIP"
-    DependsOn: AppRunnerV2NPrototypeVPC
+    DependsOn: AppRunnerHotelAppVPC
     Properties:
       Domain: vpc
 
   PrivateRouteTable:
     Type: 'AWS::EC2::RouteTable'
     Properties:
-      VpcId: !Ref AppRunnerV2NPrototypeVPC
+      VpcId: !Ref AppRunnerHotelAppVPC
       Tags:
         - Key: Network
           Value: Private
@@ -212,21 +224,21 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Allow egress traffic from AppRunner Service via VPC Connector
-      GroupName: AppRunnerV2NPrototype-Service-SG
-      VpcId: !Ref AppRunnerV2NPrototypeVPC
+      GroupName: AppRunnerHotelApp-Service-SG
+      VpcId: !Ref AppRunnerHotelAppVPC
       Tags: 
         - Key: "Name"
-          Value: "AppRunnerV2NPrototype-Service-SG"
+          Value: "AppRunnerHotelApp-Service-SG"
   
   RDSSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Allow ingress traffic from AppRunner service
-      GroupName: AppRunnerV2NPrototype-RDS-SG
-      VpcId: !Ref AppRunnerV2NPrototypeVPC
+      GroupName: AppRunnerHotelApp-RDS-SG
+      VpcId: !Ref AppRunnerHotelAppVPC
       Tags: 
         - Key: "Name"
-          Value: "AppRunnerV2NPrototype-RDS-SG"
+          Value: "AppRunnerHotelApp-RDS-SG"
   
   RDSSecurityGroupEgress:
     Type: AWS::EC2::SecurityGroupEgress
@@ -241,11 +253,11 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Allow egress traffic to RDS database
-      GroupName: AppRunnerV2NPrototype-SecretRotation-SG
-      VpcId: !Ref AppRunnerV2NPrototypeVPC
+      GroupName: AppRunnerHotelApp-SecretRotation-SG
+      VpcId: !Ref AppRunnerHotelAppVPC
       Tags: 
         - Key: "Name"
-          Value: "AppRunnerV2NPrototype-SecretRotation-SG"
+          Value: "AppRunnerHotelApp-SecretRotation-SG"
 
   RDSSecurityGroupIngressFromAppRunnerService:
     Type: AWS::EC2::SecurityGroupIngress
@@ -285,7 +297,7 @@ Resources:
         - !Ref PrivateSubnet1
         - !Ref PrivateSubnet2
         - !Ref PrivateSubnet3
-      VpcConnectorName: AppRunnerV2NPrototype-RDS-Connector
+      VpcConnectorName: AppRunnerHotelApp-RDS-Connector
 
   DBSubnetGroup:
     Type: 'AWS::RDS::DBSubnetGroup'
@@ -343,7 +355,6 @@ Resources:
     Properties:
       Engine: aurora-mysql
       EngineVersion: "5.7"
-      DatabaseName: v2nPrototypeDB
       Port: 3306
       MasterUsername:
         Fn::Sub: "{{resolve:secretsmanager:${AuroraDBSecret}::username}}"
@@ -355,7 +366,7 @@ Resources:
       StorageEncrypted: true
       Tags: 
         - Key: "Name"
-          Value: "AppRunnerV2NPrototype-RDSDBCluster"
+          Value: "AppRunnerHotelApp-RDSDBCluster"
 
   AuroraDBFirstInstance:
     Type: AWS::RDS::DBInstance
@@ -370,7 +381,7 @@ Resources:
   AppRunnerECRAccessRole: 
     Type: AWS::IAM::Role
     Properties: 
-      RoleName: "AppRunnerV2NPrototypeECRAccessRoleIAD"
+      RoleName: !Sub "AppRunnerHotelAppECRAccessRole-${AWS::Region}"
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement: 
@@ -386,7 +397,7 @@ Resources:
   AppRunnerInstanceRole: 
     Type: AWS::IAM::Role
     Properties: 
-      RoleName: "AppRunnerV2NInstanceRole"
+      RoleName: !Sub "AppRunnerHotelAppRole-${AWS::Region}"
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement: 
