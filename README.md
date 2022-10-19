@@ -1,4 +1,4 @@
-# AppRunner VPC Connector Demo
+# AppRunner Hotel App
 
 **Note: This is not Production grade and simply meant as a demo**
 

@@ -259,6 +259,14 @@ Resources:
         - Key: "Name"
           Value: "AppRunnerHotelApp-SecretRotation-SG"
 
+  SecretRotationLambdaSecurityGroupEgress:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      GroupId: !Ref SecretRotationLambdaSecurityGroup
+      Description: Allow all outbound traffic
+      IpProtocol: "-1"
+      CidrIp: 0.0.0.0/0
+
   RDSSecurityGroupIngressFromAppRunnerService:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:

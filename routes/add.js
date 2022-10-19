@@ -23,16 +23,23 @@ var rds=require('../rds');
 /* Add a new room */
 router.post('/', function (req, res, next) {
   if (req.body.roomNumber && req.body.floorNumber && req.body.hasView) {
-    console.log('New room request received. roomNumber: %s, floorNumber: %s, hasView: %s', req.body.roomNumber, req.body.floorNumber, req.body.hasView);
+    
+    const roomNumber = req.body.roomNumber;
+    const floorNumber = req.body.floorNumber;
+    const hasView = req.body.hasView;
+
+    console.log('New room request received. roomNumber: %s, floorNumber: %s, hasView: %s', roomNumber, floorNumber, hasView);
+    
+    var sql = "INSERT INTO hotel.rooms (id, floor, hasView) VALUES (?, ?, ?)";
+    sqlParams = [roomNumber, floorNumber, hasView];
+    
     const [pool, url] = rds();
     pool.getConnection(function(err, con){
       if (err) throw err;
-
-      con.query(`INSERT INTO hotel.rooms (id, floor, hasView) VALUES ('${req.body.roomNumber}', '${req.body.floorNumber}', '${req.body.hasView}')`, function(err, result, fields) {
+      con.query(sql, sqlParams, function(err, result, fields) {
           con.release();
           if (err) res.send(err);
-          //if (result) res.send({roomId: req.body.roomNumber, floor: req.body.floorNumber, hasView: req.body.hasView});
-          if (result) res.render('add', { title: 'Add new room', view: 'No', result: { roomId: req.body.roomNumber } });
+          if (result) res.render('add', { title: 'Add new room', view: 'No', result: { roomId: roomNumber } });
           if (fields) console.log(fields);
       });
     });
