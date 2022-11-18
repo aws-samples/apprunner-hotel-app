@@ -12,6 +12,8 @@ if(!process.env.MYSQL_SECRET) {
 
 const secret = JSON.parse(process.env.MYSQL_SECRET);
 rdsUrl = secret.host;
+console.log(`Connecting to RDS at ${rdsUrl}`);
+
 rdsPool = mysql.createPool({
   connectionLimit : 12,
   host: secret.host,
