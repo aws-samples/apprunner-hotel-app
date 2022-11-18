@@ -10,7 +10,7 @@ if(!process.env.MYSQL_SECRET) {
   throw new Error('MYSQL_SECRET environment variable must be set');
 }
 
-const secret = await JSON.parse(process.env.MYSQL_SECRET);
+const secret = JSON.parse(process.env.MYSQL_SECRET);
 rdsUrl = secret.host;
 rdsPool = mysql.createPool({
   connectionLimit : 12,
