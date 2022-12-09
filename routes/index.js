@@ -18,12 +18,11 @@
 
 var express = require('express');
 var router = express.Router();
-
-var hotelName = process.env.HOTEL_NAME || 'AWS App Runner Hotel';
+var config = require('../config');
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  res.render('index', { title: hotelName });
+  res.render('index', { title: config().hotelName, menuTitle: config().hotelName });
 });
 
 module.exports = router;
