@@ -18,7 +18,8 @@
 
 var express = require('express');
 var router = express.Router();
-var rds=require('../rds');
+var config = require('../config');
+var rds = require('../rds');
 
 /* Add a new room */
 router.post('/', function (req, res, next) {
@@ -49,7 +50,7 @@ router.post('/', function (req, res, next) {
 });
 
 router.get('/', function(req, res, next) {
-    res.render('add', { title: 'Add new room', view: 'No' });
+    res.render('add', { title: 'Add new room', menuTitle: config().hotelName, view: 'No' });
 });
 
 module.exports = router;

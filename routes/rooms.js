@@ -18,7 +18,8 @@
 
 var express = require('express');
 var router = express.Router();
-var rds=require('../rds');
+var config = require('../config');
+var rds = require('../rds');
 
 /* display room list */
 router.get('/', function(req, res, next) {
@@ -30,7 +31,7 @@ router.get('/', function(req, res, next) {
       con.release();
       if (err) res.send(err);
       if (results) {
-        res.render('room-list', { title: 'Room List', url: url, rooms: results});
+        res.render('room-list', { title: 'Room List', menuTitle: config().hotelName, url: url, rooms: results});
 
         console.log('displayed %d rooms', results.length);
       }
