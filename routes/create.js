@@ -18,6 +18,7 @@
 
 var express = require('express');
 var router = express.Router();
+var config = require('../config');
 var rds = require('../rds');
 
 router.get('/', function(req, res, next) {
@@ -45,7 +46,7 @@ router.get('/', function(req, res, next) {
     con.release();
   });
 
-  res.render('create', { url: rdsUrl });
+  res.render('create', { menuTitle: config().hotelName, url: rdsUrl });
 });
 
 module.exports = router;
