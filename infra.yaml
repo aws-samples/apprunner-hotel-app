@@ -36,6 +36,12 @@
 
 Transform: AWS::SecretsManager-2020-07-23
 
+Parameters:
+  HotelName:
+    Type: String
+    Default: AWS App Runner Hotel
+    Description: Enter a name for the Hotel. Default is AWS App Runner Hotel.
+
 Resources:
   AppRunnerHotelAppVPC:
     Type: 'AWS::EC2::VPC'
@@ -460,5 +466,25 @@ Resources:
                Action:
                  - "secretsmanager:GetSecretValue"
                Resource: !Ref AuroraDBSecret
+             - Effect: Allow
+               Action:
+                 - "ssm:GetParameter"
+               Resource: !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${HotelNameParam}
       ManagedPolicyArns:
         - "arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess"
+
+  HotelNameParam:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: hotel_name
+      Type: String
+      Value: !Ref HotelName
+      Description: App Runner Hotel Name
+
+Outputs:
+  DBSecret:
+    Description: AWS Secrets Manager secret containing DB credentials
+    Value: !Ref AuroraDBSecret
+  HotelName:
+    Description: AWS Paramter Store value containing Hotel's name
+    Value: !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${HotelNameParam}
