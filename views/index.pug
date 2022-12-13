@@ -4,7 +4,7 @@ block content
   nav.navbar.navbar-expand-lg.navbar-light.bg-primary(style='margin-top: 10px;')
       .container-fluid
         a.navbar-brand(href='#')
-          span(style='margin-left: 10px;') AWS App Runner Hotel
+          span(style='margin-left: 10px;') #{menuTitle}
         button.navbar-toggler(type='button' data-bs-toggle='collapse' data-bs-target='#navbarNav' aria-controls='navbarNav' aria-expanded='false' aria-label='Toggle navigation')
           span.navbar-toggler-icon
         #navbarNav.collapse.navbar-collapse
@@ -17,7 +17,7 @@ block content
               a.nav-link(href='/add') Add
             li.nav-item
               a.nav-link(href='/create') Create
-  img(src='/public/hotel_landing_pic.jpg' alt='no image available' style='display: block; margin-left: auto; margin-right: auto; width: 100%;')
 
-  p. 
-    Photo by: #[a( href="https://www.pexels.com/@jeffrey-czum-254391/" ) Jeffrey Czum]
+  h1.
+    Welcome to #{menuTitle}
+  

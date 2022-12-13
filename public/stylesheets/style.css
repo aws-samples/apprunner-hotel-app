@@ -11,6 +11,11 @@ h2 {
 body {
   padding: 5px;
   font: 16px "Lucida Grande", Helvetica, Arial, sans-serif;
+  background-image: url(/public/hotel_landing_pic.png);
+  background-size: contain;
+  background-position: center;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
 }
 
 em {
