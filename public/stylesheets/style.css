@@ -16,6 +16,7 @@ body {
   background-position: center;
   background-attachment: fixed;
   background-repeat: no-repeat;
+}
 
 em {
   color: #00B7FF;
@@ -41,8 +42,8 @@ thead{
 }
 
 tbody tr:nth-child(even){
-    background-color: #f8f9f937;
+    background-color: #f8f9f9;
 }
 tbody tr:nth-child(odd){
-    background-color: #fef9e737;
+    background-color: #fef9e7;
 }
