@@ -26,8 +26,6 @@
 #   * [Network] A VPC endpoint for AWS Secrets Manager (for private connection between VPC and Secrets Manager)
 #   * [Network] A Security Group for the App Runner service (allows egress traffic to the RDS database security group)
 #   * [Network] A Security Group for the RDS database (allows ingress traffic from the App Runner service security group)
-#   * [Network] A Security Group for the Secrets Manager VPC Endpoint (allows ingress traffic from the App Runner security group)
-#   * [Network] A Security Group for the Secrets Manager rotation Lambda to connect to RDS
 #   * [RDS] A private RDS Aurora database
 #   * [RDS] Store username/password in Secrets Manager with rotation enabled
 #   * [App Runner] ECR Access Role (if using a public ECR image, you don't need this role, but creating it anyway)
@@ -254,25 +252,6 @@ Resources:
       IpProtocol: "-1"
       CidrIp: 0.0.0.0/0
 
-  
-  SecretRotationLambdaSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: Allow egress traffic to RDS database
-      GroupName: AppRunnerHotelApp-SecretRotation-SG
-      VpcId: !Ref AppRunnerHotelAppVPC
-      Tags: 
-        - Key: "Name"
-          Value: "AppRunnerHotelApp-SecretRotation-SG"
-
-  SecretRotationLambdaSecurityGroupEgress:
-    Type: AWS::EC2::SecurityGroupEgress
-    Properties:
-      GroupId: !Ref SecretRotationLambdaSecurityGroup
-      Description: Allow all outbound traffic
-      IpProtocol: "-1"
-      CidrIp: 0.0.0.0/0
-
   RDSSecurityGroupIngressFromAppRunnerService:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
@@ -283,17 +262,6 @@ Resources:
       ToPort: 3306
       SourceSecurityGroupId: !Ref AppRunnerServiceSecurityGroup
 
-  RDSSecurityGroupIngressFromRotationLambda:
-    Type: 'AWS::EC2::SecurityGroupIngress'
-    DependsOn: RDSSecurityGroup
-    Properties:
-      GroupId: !Ref RDSSecurityGroup
-      Description: Allow inbound traffic to the DB from Secrets Manager rotation Lambda
-      IpProtocol: tcp
-      FromPort: 3306
-      ToPort: 3306
-      SourceSecurityGroupId: !Ref SecretRotationLambdaSecurityGroup
-  
   AppRunnerServiceSecurityGroupEgress:
     Type: AWS::EC2::SecurityGroupEgress
     Properties:
@@ -340,29 +308,6 @@ Resources:
       TargetId:
         Ref: AuroraDBCluster
       TargetType: AWS::RDS::DBCluster
-
-  MySecretRotationSchedule:
-    Type: AWS::SecretsManager::RotationSchedule
-    DependsOn: SecretRDSInstanceAttachment
-    Properties:
-      SecretId:
-        Ref: AuroraDBSecret
-      HostedRotationLambda:
-        RotationType: MySQLSingleUser
-        RotationLambdaName: SecretsManagerRotation
-        VpcSecurityGroupIds: 
-          Fn::Join:
-          - ","
-          - - Ref: SecretRotationLambdaSecurityGroup
-        VpcSubnetIds:
-          Fn::Join:
-          - ","
-          - - Ref: PrivateSubnet1
-            - Ref: PrivateSubnet2
-            - Ref: PrivateSubnet3
-      RotationRules:
-        Duration: 2h
-        ScheduleExpression: 'cron(0 8 1 * ? *)'
 
   AuroraDBCluster:
     Type: AWS::RDS::DBCluster
@@ -468,7 +413,7 @@ Resources:
                Resource: !Ref AuroraDBSecret
              - Effect: Allow
                Action:
-                 - "ssm:GetParameter"
+                 - "ssm:GetParameters"
                Resource: !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${HotelNameParam}
       ManagedPolicyArns:
         - "arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess"
@@ -488,3 +433,5 @@ Outputs:
   HotelName:
     Description: AWS Paramter Store value containing Hotel's name
     Value: !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${HotelNameParam}
+
+
