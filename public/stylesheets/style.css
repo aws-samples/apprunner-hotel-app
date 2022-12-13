@@ -41,8 +41,8 @@ thead{
 }
 
 tbody tr:nth-child(even){
-    background-color: #f8f9f9;
+    background-color: #f8f9f937;
 }
 tbody tr:nth-child(odd){
-    background-color: #fef9e7;
+    background-color: #fef9e737;
 }
