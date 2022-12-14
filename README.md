@@ -11,7 +11,7 @@ This project provisions the base layer infrastructure to demonstrate how AppRunn
 * VPC (private + public subnets, IGW, NGW)
 * Aurora MySQL in private subnet
 * VPC Connector for AppRunner and requisite security groups
-* Secrets Manager for DB credentials with rotation enabled
+* Secrets Manager for DB credentials
 
 **Note** : AWS App Runner is currently available in [these regions](https://docs.aws.amazon.com/general/latest/gr/apprunner.html):
 - us-east-1
@@ -33,7 +33,8 @@ This project provisions the base layer infrastructure to demonstrate how AppRunn
     - Port: *8080* (default) 
   - Configure service
     - Environment variable:
-      - secret: *Secrets Manager secret name* (Provisioned by infra.yaml)
+      - MYSQL_HOST: *DBSecret ARN* (Provisioned by infra.yaml. See Outputs tab)
+      - HOTEL_NAME: *HotelName ARN* (Provisioned by infra.yaml. See Outputs tab)
     - Security: *AppRunnerHotelAppRole* (Provisioned by infra.yaml)
     - Networking: 
       - Custom VPC: *AppRunnerV2NPrototype-RDS-Connector* (Provisioned by infra.yaml)
