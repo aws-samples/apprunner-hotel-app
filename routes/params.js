@@ -20,9 +20,9 @@ var express = require('express');
 var router = express.Router();
 var config = require('../config');
 
-/* GET home page. */
+/* display room list */
 router.get('/', function(req, res, next) {
-  res.render('index', { title: config.hotel_name, menuTitle: config.hotel_name });
+  res.render('param-list', { params: config });
 });
 
 module.exports = router;
