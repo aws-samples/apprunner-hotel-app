@@ -1,16 +1,18 @@
 const mysql = require('mysql');
-
+var config = require('./config');
 var rdsPool = null;
 var rdsUrl = null;
 
-const region = process.env.AWS_REGION;
-console.log('Application launched in: ', region);
+if(!config.region) {
+  throw new Error('AWS_REGION environment variable must be set. This is usually set by Fargate');
+}
+console.log('Application launched in: ', config.region);
 
-if(!process.env.MYSQL_SECRET) {
+if(!config.db_secret) {
   throw new Error('MYSQL_SECRET environment variable must be set');
 }
 
-const secret = JSON.parse(process.env.MYSQL_SECRET);
+const secret = JSON.parse(config.db_secret);
 rdsUrl = secret.host;
 console.log(`Connecting to RDS at ${rdsUrl}`);
 
