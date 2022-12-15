@@ -50,7 +50,7 @@ router.post('/', function (req, res, next) {
 });
 
 router.get('/', function(req, res, next) {
-    res.render('add', { title: 'Add new room', menuTitle: config().hotelName, view: 'No' });
+    res.render('add', { title: 'Add new room', menuTitle: config.app.hotelName, view: 'No' });
 });
 
 module.exports = router;

@@ -28,7 +28,7 @@ block content
         th(scope='col') Key
         th(scope='col') Value
     tbody(style='background-color: white')
-      each value, key in infraParams
+      each key, value in infraParams
         tr
           td= value
           td= key
@@ -42,7 +42,7 @@ block content
         th(scope='col') Key
         th(scope='col') Value
     tbody(style='background-color: white')
-      each value, key in appParams
+      each key, value in appParams
         tr
           td= value
           td= key
@@ -56,7 +56,7 @@ block content
         th(scope='col') Key
         th(scope='col') Value
     tbody(style='background-color: white')
-      each value, key in secretParams
+      each key, value in secretParams
         tr
           td= value
           td= key
