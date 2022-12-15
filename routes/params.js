@@ -22,7 +22,8 @@ var config = require('../config');
 
 /* display room list */
 router.get('/', function(req, res, next) {
-  res.render('param-list', { params: config });
+  var secret = JSON.parse(config.db_secret);
+  res.render('param-list', { infraParams: config.infra, appParams: config.app, secretParams: secret });
 });
 
 module.exports = router;

@@ -10,16 +10,17 @@ block content
       #navbarNav.collapse.navbar-collapse
         ul.navbar-nav
           li.nav-item
-          a.nav-link.active(href='/') Home
+          a.nav-link.active(href='/index') Home
           li.nav-item
             a.nav-link(href='/rooms') Rooms
           li.nav-item
             a.nav-link(href='/add') Add
           li.nav-item
             a.nav-link(href='/create') Create
-
+          li.nav-item
+            a.nav-link(href='/params') Parameters
   p
-    h2(style='text-align: center;') Parameters
+    h2(style='text-align: center;') Infrastructure Parameters
 
   table.table.table-striped.table-hover(style='margin-left: auto; margin-right: auto; width: 60%;')
     thead.table-primary
@@ -27,7 +28,36 @@ block content
         th(scope='col') Key
         th(scope='col') Value
     tbody(style='background-color: white')
-      each value, key in params
+      each value, key in infraParams
         tr
           td= value
           td= key
+  
+  p
+    h2(style='text-align: center;') Application Parameters
+
+  table.table.table-striped.table-hover(style='margin-left: auto; margin-right: auto; width: 60%;')
+    thead.table-primary
+      tr
+        th(scope='col') Key
+        th(scope='col') Value
+    tbody(style='background-color: white')
+      each value, key in appParams
+        tr
+          td= value
+          td= key
+
+  p
+    h2(style='text-align: center;') Secrets
+
+  table.table.table-striped.table-hover(style='margin-left: auto; margin-right: auto; width: 60%;')
+    thead.table-primary
+      tr
+        th(scope='col') Key
+        th(scope='col') Value
+    tbody(style='background-color: white')
+      each value, key in secretParams
+        tr
+          td= value
+          td= key
+
