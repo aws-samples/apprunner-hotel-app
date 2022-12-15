@@ -23,7 +23,8 @@ var config = require('../config');
 /* display room list */
 router.get('/', function(req, res, next) {
   var secret = JSON.parse(config.secret.db_secret);
-  res.render('param-list', { infraParams: config.infra, appParams: config.app, secretParams: secret });
+  secret.password = "Shhhh! It's a secret"
+  res.render('param-list', { menuTitle: config.app.hotel_name, infraParams: config.infra, appParams: config.app, secretParams: secret });
 });
 
 module.exports = router;
