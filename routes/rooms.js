@@ -31,7 +31,7 @@ router.get('/', function(req, res, next) {
       con.release();
       if (err) res.send(err);
       if (results) {
-        res.render('room-list', { title: 'Room List', menuTitle: config().hotelName, url: url, rooms: results});
+        res.render('room-list', { title: 'Room List', menuTitle: config.hotel_name, url: url, rooms: results});
 
         console.log('displayed %d rooms', results.length);
       }
