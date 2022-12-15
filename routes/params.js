@@ -22,7 +22,7 @@ var config = require('../config');
 
 /* display room list */
 router.get('/', function(req, res, next) {
-  var secret = JSON.parse(config.db_secret);
+  var secret = JSON.parse(config.secret.db_secret);
   res.render('param-list', { infraParams: config.infra, appParams: config.app, secretParams: secret });
 });
 
