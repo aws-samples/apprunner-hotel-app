@@ -10,13 +10,15 @@ block content
       #navbarNav.collapse.navbar-collapse
         ul.navbar-nav
           li.nav-item
-          a.nav-link.active(href='/') Home
+          a.nav-link.active(href='/index') Home
           li.nav-item
             a.nav-link(href='/rooms') Rooms
           li.nav-item
             a.nav-link(href='/add') Add
           li.nav-item
             a.nav-link(href='/create') Create
+          li.nav-item
+            a.nav-link(href='/params') Parameters
 
   h2(style='margin-left: 15px; margin-top: 15px;') #{title}
   form(name="add-room", method="post")

@@ -46,7 +46,7 @@ router.get('/', function(req, res, next) {
     con.release();
   });
 
-  res.render('create', { menuTitle: config().hotelName, url: rdsUrl });
+  res.render('create', { menuTitle: config.hotel_name, url: rdsUrl });
 });
 
 module.exports = router;

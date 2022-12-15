@@ -1,6 +1,5 @@
 var config = {}
-config.region = process.env.AWS_REGION;
-config.db_secret = process.env.MYSQL_SECRET;
-config.hotel_name = process.env.HOTEL_NAME;
-
+config.infra.region = process.env.AWS_REGION;
+config.app.hotel_name = process.env.HOTEL_NAME;
+config.secret.db_secret = process.env.MYSQL_SECRET;
 module.exports = config;

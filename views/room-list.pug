@@ -10,13 +10,15 @@ block content
       #navbarNav.collapse.navbar-collapse
         ul.navbar-nav
           li.nav-item
-          a.nav-link.active(href='/') Home
+            a.nav-link.active(href='/index') Home
           li.nav-item
             a.nav-link(href='/rooms') Rooms
           li.nav-item
             a.nav-link(href='/add') Add
           li.nav-item
             a.nav-link(href='/create') Create
+          li.nav-item
+              a.nav-link(href='/params') Parameters
 
   p
   .alert.alert-info(style='margin: auto; width: 80%', role='alert') Rooms stored in database: #{url}
