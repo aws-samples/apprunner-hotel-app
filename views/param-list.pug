@@ -27,7 +27,7 @@ block content
         th(scope='col') Key
         th(scope='col') Value
     tbody(style='background-color: white')
-      each param, value in params
+      each value, key in params
         tr
-          td= param
           td= value
+          td= key
