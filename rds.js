@@ -3,16 +3,16 @@ var config = require('./config');
 var rdsPool = null;
 var rdsUrl = null;
 
-if(!config.region) {
+if(!config.infra.region) {
   throw new Error('AWS_REGION environment variable must be set. This is usually set by Fargate');
 }
 console.log('Application launched in: ', config.region);
 
-if(!config.db_secret) {
+if(!config.secret.db_secret) {
   throw new Error('MYSQL_SECRET environment variable must be set');
 }
 
-const secret = JSON.parse(config.db_secret);
+const secret = JSON.parse(config.secret.db_secret);
 rdsUrl = secret.host;
 console.log(`Connecting to RDS at ${rdsUrl}`);
 
