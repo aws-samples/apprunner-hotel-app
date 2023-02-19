@@ -22,9 +22,8 @@
 #   * [Network] Three Public Subnets (in 3 AZs)
 #   * [Network] Three Private Subnets (in 3 AZs)
 #   * [Network] An Internet Gateway (with routes to it from the public subnets)
-#   * [Network] A NAT Gateway (with routes to it from the priavte subnets)
-#   * [Network] A VPC endpoint for AWS Secrets Manager (for private connection between VPC and Secrets Manager)
-#   * [Network] A Security Group for the App Runner service (allows egress traffic to the RDS database security group)
+#   * [Network] A NAT Gateway (with routes to it from the private subnets) to support App Runner VPC Connector egress traffic
+#   * [Network] A Security Group for the App Runner service (allows egress traffic from the App Runner service [Fargate tasks] to the RDS database security group)
 #   * [Network] A Security Group for the RDS database (allows ingress traffic from the App Runner service security group)
 #   * [RDS] A private RDS Aurora database
 #   * [RDS] Store username/password in Secrets Manager with rotation enabled
