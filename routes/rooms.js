@@ -25,17 +25,20 @@ var rds = require('../rds');
 router.get('/', function(req, res, next) {
   const [pool, url] = rds();
   pool.getConnection(function(err, con){
-    if (err) throw err;
-
-    con.query('SELECT * FROM hotel.rooms', function(error, results, fields) {
-      con.release();
-      if (err) res.send(err);
-      if (results) {
-        res.render('room-list', { title: 'Room List', menuTitle: config.app.hotel_name, url: url, rooms: results});
-
-        console.log('displayed %d rooms', results.length);
-      }
-    });
+    if (err) {
+      next(err);
+    }
+    else {
+      con.query('SELECT * FROM hotel.rooms', function(error, results, fields) {
+        con.release();
+        if (err) res.send(err);
+        if (results) {
+          res.render('room-list', { title: 'Room List', menuTitle: config.app.hotel_name, url: url, rooms: results});
+  
+          console.log('displayed %d rooms', results.length);
+        }
+      });
+    }
   }); 
 });
 
