@@ -36,13 +36,17 @@ router.post('/', function (req, res, next) {
     
     const [pool, url] = rds();
     pool.getConnection(function(err, con){
-      if (err) throw err;
-      con.query(sql, sqlParams, function(err, result, fields) {
+      if (err) {
+        next(err)
+      }
+      else {
+        con.query(sql, sqlParams, function(err, result, fields) {
           con.release();
           if (err) res.send(err);
           if (result) res.render('add', { title: 'Add new room', view: 'No', result: { roomId: roomNumber } });
           if (fields) console.log(fields);
       });
+      }
     });
   } else {
     throw new Error('Missing room id, floor or has view parameters');
