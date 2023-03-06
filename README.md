@@ -33,7 +33,7 @@ This project provisions the base layer infrastructure to demonstrate how AppRunn
     - Port: *8080* (default) 
   - Configure service
     - Environment variable:
-      - MYSQL_HOST: *DBSecret ARN* (Provisioned by infra.yaml. See Outputs tab)
+      - MYSQL_SECRET: *DBSecret ARN* (Provisioned by infra.yaml. See Outputs tab)
       - HOTEL_NAME: *HotelName ARN* (Provisioned by infra.yaml. See Outputs tab)
     - Security: *AppRunnerHotelAppRole* (Provisioned by infra.yaml)
     - Networking: 
