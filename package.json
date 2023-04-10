@@ -21,7 +21,7 @@
     "@opentelemetry/sdk-trace-node": "^1.7.0",
     "@opentelemetry/sdk-trace-web": "^1.7.0",
     "@opentelemetry/semantic-conventions": "^1.7.0",
-    "aws-sdk": "^2.1231.0",
+    "aws-sdk": "^2.1354.0",
     "cookie-parser": "~1.4.6",
     "debug": "~4.3.4",
     "express": "~4.18.2",
