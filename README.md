@@ -4,7 +4,7 @@
 
 ## Description
 
-This project provisions the base layer infrastructure to demonstrate how AppRunner leverages a VPC Connector to interact with a DB in a private subnet.
+This project provisions the base layer infrastructure to demonstrate how AppRunner leverages a VPC Connector to interact with a DB in a private subnet. 
 
 ## AWS Services
 
@@ -22,7 +22,7 @@ This project provisions the base layer infrastructure to demonstrate how AppRunn
 
 ## Deployment Instructions
 - Select a region where App Runner is available
-- Create a Cloudformation stack using *infra.yaml*  
+- Create a Cloudformation stack using *base-infra.yaml*  
 - Deploy the application using the AppRunner Console.
   - Source
     - Point to your Github repo
