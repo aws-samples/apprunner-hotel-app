@@ -178,7 +178,6 @@ Resources:
 
   NatGateway:
     Type: "AWS::EC2::NatGateway"
-    DependsOn: NatPublicIP
     Properties: 
       AllocationId: !GetAtt NatPublicIP.AllocationId
       SubnetId: !Ref PublicSubnet1
@@ -236,9 +235,21 @@ Resources:
     Type: AWS::EC2::SecurityGroupEgress
     Properties:
       GroupId: !Ref AppRunnerServiceSecurityGroup
-      Description: Allow all outbound traffic
-      IpProtocol: "-1"
+      Description: Allow all outbound traffic to HTTPS 
+      IpProtocol: "tcp"
+      FromPort: 443
+      ToPort: 443
       CidrIp: 0.0.0.0/0
+
+  AppRunnerServiceSecurityGroupSQLEgress:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      GroupId: !Ref AppRunnerServiceSecurityGroup
+      Description: Allow traffic to RDS 
+      IpProtocol: "tcp"
+      FromPort: 3306
+      ToPort: 3306
+      DestinationSecurityGroupId: !Ref RDSSecurityGroup
 
   AppRunnerServiceSecurityGroupIngress:
     Type: AWS::EC2::SecurityGroupIngress
@@ -264,9 +275,11 @@ Resources:
     Type: AWS::EC2::SecurityGroupEgress
     Properties:
       GroupId: !Ref RDSSecurityGroup
-      Description: Allow all outbound traffic
-      IpProtocol: "-1"
-      CidrIp: 0.0.0.0/0
+      Description: Allow limited outbound traffic to AppRunner service 
+      IpProtocol: "tcp"
+      FromPort: 3306
+      ToPort: 3306
+      DestinationSecurityGroupId: !Ref AppRunnerServiceSecurityGroup
 
   RDSSecurityGroupIngressFromAppRunnerService:
     Type: AWS::EC2::SecurityGroupIngress
