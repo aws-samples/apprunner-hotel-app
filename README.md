@@ -33,9 +33,9 @@ This project provisions the base layer infrastructure to demonstrate how AppRunn
     - Port: *8080* (default) 
   - Configure service
     - Environment variable:
-      - MYSQL_SECRET: *DBSecret ARN* (Provisioned by infra.yaml. See Outputs tab)
-      - HOTEL_NAME: *HotelName ARN* (Provisioned by infra.yaml. See Outputs tab)
-    - Security: *AppRunnerHotelAppRole* (Provisioned by infra.yaml)
+      - MYSQL_SECRET: *DBSecret ARN* (Provisioned by base-infra.yaml. See Outputs tab)
+      - HOTEL_NAME: *HotelName ARN* (Provisioned by base-infra.yaml. See Outputs tab)
+    - Security: *AppRunnerHotelAppRole* (Provisioned by base-infra.yaml)
     - Networking: 
       - Custom VPC: *AppRunnerV2NPrototype-RDS-Connector* (Provisioned by infra.yaml)
     - Observability: Enable Tracing with AWS X-Ray
@@ -44,4 +44,3 @@ This project provisions the base layer infrastructure to demonstrate how AppRunn
 
 - Go to AppRunner console and delete the service.
 - Go to Cloudformation and delete the stack.
-
