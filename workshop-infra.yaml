@@ -1,0 +1,485 @@
+#
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: MIT-0
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy of this
+# software and associated documentation files (the "Software"), to deal in the Software
+# without restriction, including without limitation the rights to use, copy, modify,
+# merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+# permit persons to whom the Software is furnished to do so.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+# INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+# PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+# HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+# OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+#
+# AppRunner-Hotel-App
+#
+# This template will create:
+#   * [Network] A VPC 
+#   * [Network] Three Public Subnets (in 3 AZs)
+#   * [Network] Three Private Subnets (in 3 AZs)
+#   * [Network] An Internet Gateway (with routes to it from the public subnets)
+#   * [Network] A NAT Gateway (with routes to it from the private subnets) to support App Runner VPC Connector egress traffic
+#   * [Network] A Security Group for the App Runner service (allows egress traffic from the App Runner service [Fargate tasks] to the RDS database security group)
+#   * [Network] A Security Group for the RDS database (allows ingress traffic from the App Runner service security group)
+#   * [RDS] A private RDS Aurora database
+#   * [RDS] Store username/password in Secrets Manager with rotation enabled
+#   * [App Runner] ECR Access Role (if using a public ECR image, you don't need this role, but creating it anyway)
+#   * [App Runner] SLR stand-in role (our public SLR policy hasn't been updated yet, so using this manually created role as a stand-in)
+
+Transform: AWS::SecretsManager-2020-07-23
+
+Parameters:
+  HotelName:
+    Type: String
+    Default: AWS App Runner Hotel
+    Description: Enter a name for the Hotel. Default is AWS App Runner Hotel.
+
+Resources:
+  AppRunnerHotelAppVPC:
+    Type: 'AWS::EC2::VPC'
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags: 
+        - Key: "Name"
+          Value: "AppRunnerHotelAppVPC"
+ 
+  PublicSubnet1:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref AppRunnerHotelAppVPC
+      AvailabilityZone: !Select
+        - 0
+        - Fn::GetAZs: !Ref 'AWS::Region'
+      CidrBlock: 10.0.0.0/24
+      MapPublicIpOnLaunch: false
+      Tags: 
+        - Key: "Name"
+          Value: "AppRunnerHotelApp-PublicSubnet-1"
+ 
+  PublicSubnet2:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref AppRunnerHotelAppVPC
+      AvailabilityZone: !Select
+        - 1
+        - Fn::GetAZs: !Ref 'AWS::Region'
+      CidrBlock: 10.0.1.0/24
+      MapPublicIpOnLaunch: false
+      Tags: 
+        - Key: "Name"
+          Value: "AppRunnerHotelApp-PublicSubnet-2"
+  
+  PublicSubnet3:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref AppRunnerHotelAppVPC
+      AvailabilityZone: !Select
+        - 2
+        - Fn::GetAZs: !Ref 'AWS::Region'
+      CidrBlock: 10.0.2.0/24
+      MapPublicIpOnLaunch: false
+      Tags: 
+        - Key: "Name"
+          Value: "AppRunnerHotelApp-PublicSubnet-3"
+    
+  PrivateSubnet1:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref AppRunnerHotelAppVPC
+      AvailabilityZone: !Select
+        - 0
+        - Fn::GetAZs: !Ref 'AWS::Region'
+      CidrBlock: 10.0.3.0/24
+      MapPublicIpOnLaunch: false
+      Tags: 
+        - Key: "Name"
+          Value: "AppRunnerHotelApp-PrivateSubnet-1"
+ 
+  PrivateSubnet2:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref AppRunnerHotelAppVPC
+      AvailabilityZone: !Select
+        - 1
+        - Fn::GetAZs: !Ref 'AWS::Region'
+      CidrBlock: 10.0.4.0/24
+      MapPublicIpOnLaunch: false  
+      Tags: 
+        - Key: "Name"
+          Value: "AppRunnerHotelApp-PrivateSubnet-2"
+
+  PrivateSubnet3:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref AppRunnerHotelAppVPC
+      AvailabilityZone: !Select
+        - 2
+        - Fn::GetAZs: !Ref 'AWS::Region'
+      CidrBlock: 10.0.5.0/24
+      MapPublicIpOnLaunch: false  
+      Tags: 
+        - Key: "Name"
+          Value: "AppRunnerHotelApp-PrivateSubnet-3"
+
+  InternetGateway:
+    Type: 'AWS::EC2::InternetGateway'
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Join [_, [!Ref 'AWS::StackName']]
+        - Key: Network
+          Value: Public
+  
+  GatewayToInternet:
+    Type: 'AWS::EC2::VPCGatewayAttachment'
+    Properties:
+      VpcId: !Ref AppRunnerHotelAppVPC
+      InternetGatewayId: !Ref InternetGateway
+  
+  PublicRouteTable:
+    Type: 'AWS::EC2::RouteTable'
+    Properties:
+      VpcId: !Ref AppRunnerHotelAppVPC
+      Tags:
+        - Key: Network
+          Value: Public
+  
+  PublicRoute:
+    Type: 'AWS::EC2::Route'
+    DependsOn: GatewayToInternet
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+ 
+  PublicSubnet1RouteTableAssociation:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId: !Ref PublicSubnet1
+      RouteTableId: !Ref PublicRouteTable
+ 
+  PublicSubnet2RouteTableAssociation:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId: !Ref PublicSubnet2
+      RouteTableId: !Ref PublicRouteTable
+
+  PublicSubnet3RouteTableAssociation:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId: !Ref PublicSubnet3
+      RouteTableId: !Ref PublicRouteTable
+
+  NatGateway:
+    Type: "AWS::EC2::NatGateway"
+    Properties: 
+      AllocationId: !GetAtt NatPublicIP.AllocationId
+      SubnetId: !Ref PublicSubnet1
+ 
+  NatPublicIP:
+    Type: "AWS::EC2::EIP"
+    DependsOn: AppRunnerHotelAppVPC
+    Properties:
+      Domain: vpc
+
+  PrivateRouteTable:
+    Type: 'AWS::EC2::RouteTable'
+    Properties:
+      VpcId: !Ref AppRunnerHotelAppVPC
+      Tags:
+        - Key: Network
+          Value: Private
+  
+  PrivateRoute:
+    Type: 'AWS::EC2::Route'
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGateway
+ 
+  PrivateSubnet1RouteTableAssociation:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId: !Ref PrivateSubnet1
+      RouteTableId: !Ref PrivateRouteTable
+ 
+  PrivateSubnet2RouteTableAssociation:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId: !Ref PrivateSubnet2
+      RouteTableId: !Ref PrivateRouteTable
+
+  PrivateSubnet3RouteTableAssociation:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId: !Ref PrivateSubnet3
+      RouteTableId: !Ref PrivateRouteTable
+
+  AppRunnerServiceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow egress traffic to RDS and ingress HTTPS from VPC 
+      GroupName: AppRunnerHotelApp-Service-SG
+      VpcId: !Ref AppRunnerHotelAppVPC
+      Tags: 
+        - Key: "Name"
+          Value: "AppRunnerHotelApp-Service-SG"
+  
+  AppRunnerServiceSecurityGroupEgress:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      GroupId: !Ref AppRunnerServiceSecurityGroup
+      Description: Allow all outbound traffic to HTTPS 
+      IpProtocol: "tcp"
+      FromPort: 443
+      ToPort: 443
+      CidrIp: 0.0.0.0/0
+
+  AppRunnerServiceSecurityGroupSQLEgress:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      GroupId: !Ref AppRunnerServiceSecurityGroup
+      Description: Allow traffic to RDS 
+      IpProtocol: "tcp"
+      FromPort: 3306
+      ToPort: 3306
+      DestinationSecurityGroupId: !Ref RDSSecurityGroup
+
+  AppRunnerServiceSecurityGroupIngress:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref AppRunnerServiceSecurityGroup
+      Description: Allow HTTPS traffic from within VPC
+      IpProtocol: "tcp"
+      ToPort: 443
+      FromPort: 443
+      CidrIp: 10.0.0.0/16
+
+  RDSSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow ingress traffic from AppRunner service
+      GroupName: AppRunnerHotelApp-RDS-SG
+      VpcId: !Ref AppRunnerHotelAppVPC
+      Tags: 
+        - Key: "Name"
+          Value: "AppRunnerHotelApp-RDS-SG"
+  
+  RDSSecurityGroupEgress:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      GroupId: !Ref RDSSecurityGroup
+      Description: Allow limited outbound traffic to AppRunner service 
+      IpProtocol: "tcp"
+      FromPort: 3306
+      ToPort: 3306
+      DestinationSecurityGroupId: !Ref AppRunnerServiceSecurityGroup
+
+  RDSSecurityGroupIngressFromAppRunnerService:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref RDSSecurityGroup
+      Description: Allow inbound traffic to the DB from AppRunner
+      IpProtocol: "tcp"
+      FromPort: 3306
+      ToPort: 3306
+      SourceSecurityGroupId: !Ref AppRunnerServiceSecurityGroup
+
+  DBSubnetGroup:
+    Type: 'AWS::RDS::DBSubnetGroup'
+    Properties:
+      DBSubnetGroupDescription: !Ref 'AWS::StackName'
+      SubnetIds: 
+        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
+        - !Ref PrivateSubnet3
+
+  AuroraDBSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Description: This is my rds instance secret
+      GenerateSecretString:
+        SecretStringTemplate: '{"username": "apprunner"}'
+        GenerateStringKey: password
+        PasswordLength: 32
+        ExcludeCharacters: "/@\"'\\"
+  
+  SecretRDSInstanceAttachment:
+    Type: AWS::SecretsManager::SecretTargetAttachment
+    Properties:
+      SecretId:
+        Ref: AuroraDBSecret
+      TargetId:
+        Ref: AuroraDBCluster
+      TargetType: AWS::RDS::DBCluster
+
+  AuroraDBCluster:
+    Type: AWS::RDS::DBCluster
+    Properties:
+      Engine: aurora-mysql
+      EngineVersion: "5.7"
+      Port: 3306
+      MasterUsername:
+        Fn::Sub: "{{resolve:secretsmanager:${AuroraDBSecret}::username}}"
+      MasterUserPassword:
+        Fn::Sub: "{{resolve:secretsmanager:${AuroraDBSecret}::password}}"
+      DBSubnetGroupName: !Ref DBSubnetGroup
+      VpcSecurityGroupIds:
+        - !Ref RDSSecurityGroup
+      StorageEncrypted: true
+      Tags: 
+        - Key: "Name"
+          Value: "AppRunnerHotelApp-RDSDBCluster"
+
+  AuroraDBFirstInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceClass: "db.t4g.medium"
+      DBClusterIdentifier: !Ref AuroraDBCluster  
+      Engine: aurora-mysql
+      EngineVersion: "5.7"
+      DBSubnetGroupName: !Ref DBSubnetGroup
+      PubliclyAccessible: false
+
+  AppRunnerECRAccessRole: 
+    Type: AWS::IAM::Role
+    Properties: 
+      RoleName: !Sub "AppRunnerHotelAppECRAccessRole-${AWS::Region}"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement: 
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - build.apprunner.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      ManagedPolicyArns: 
+        - "arn:aws:iam::aws:policy/service-role/AWSAppRunnerServicePolicyForECRAccess"
+
+  AppRunnerInstanceRole: 
+    Type: AWS::IAM::Role
+    Properties: 
+      RoleName: !Sub "AppRunnerHotelAppRole-${AWS::Region}"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement: 
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - tasks.apprunner.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      Policies:
+       - PolicyName: AppRunnerVPCNetworkingPermissions
+         PolicyDocument:
+           Version: "2012-10-17"
+           Statement:
+             - Effect: Allow
+               Action:
+                 - "ec2:CreateNetworkInterface"
+                 - "ec2:DeleteNetworkInterface"
+                 - "ec2:DescribeNetworkInterfaces"
+                 - "ec2:DescribeSecurityGroups"
+                 - "ec2:DescribeSubnets"
+                 - "ec2:DescribeVpcs"
+                 - "ec2:DescribeDhcpOptions"
+                 - "ec2:CreateTags"
+               Resource: '*'
+       - PolicyName: AppRunnerServiceRolePolicy
+         PolicyDocument:
+           Version: "2012-10-17"
+           Statement:
+             - Effect: Allow
+               Action:
+                 - "logs:CreateLogGroup"
+                 - "logs:PutRetentionPolicy"
+               Resource: "arn:aws:logs:*:*:log-group:/aws/apprunner/*"
+             - Effect: Allow
+               Action:
+                 - "logs:CreateLogStream"
+                 - "logs:PutLogEvents"
+                 - "logs:DescribeLogStreams"
+               Resource: "arn:aws:logs:*:*:log-group:/aws/apprunner/*:log-stream:*"
+             - Effect: Allow
+               Action:
+                 - "events:PutRule"
+                 - "events:PutTargets"
+                 - "events:DeleteRule"
+                 - "events:RemoveTargets"
+                 - "events:DescribeRule"
+                 - "events:EnableRule"
+                 - "events:DisableRule"
+               Resource: "arn:aws:events:*:*:rule/AWSAppRunnerManagedRule*"
+             - Effect: Allow
+               Action:
+                 - "secretsmanager:GetSecretValue"
+               Resource: !Ref AuroraDBSecret
+             - Effect: Allow
+               Action:
+                 - "ssm:GetParameters"
+               Resource: !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${HotelNameParam}
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess"
+
+  HotelNameParam:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: hotel_name
+      Type: String
+      Value: !Ref HotelName
+      Description: App Runner Hotel Name
+
+  AppRunnerWebACL:
+    Type: 'AWS::WAFv2::WebACL'
+    Properties:
+      Name: AppRunnerWebACL
+      Scope: REGIONAL
+      Description: This is an example WebACL for App Runner
+      DefaultAction:
+        Allow: {}
+      VisibilityConfig:
+        SampledRequestsEnabled: true
+        CloudWatchMetricsEnabled: true
+        MetricName: AppRunnerWebACLMetric
+      Rules:
+        - Name: AWSManagedRulesCommonRuleSet
+          Priority: 0
+          OverrideAction: 
+            None: {}
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: RuleWithAWSManagedRulesMetric
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: AWS
+              Name: AWSManagedRulesCommonRuleSet
+              ExcludedRules: []
+
+  
+  # Cloud9 Configuration 
+  Cloud9Instance:
+    Type: AWS::Cloud9::EnvironmentEC2
+    Properties:
+      Description: AWS Cloud9 instance for App Runner Workshop
+      AutomaticStopTimeMinutes: 30
+      InstanceType: t2.small
+      Name: "AppRunnerWorkshop"
+      SubnetId: !Ref PublicSubnet1
+
+
+Outputs:
+  DBSecret:
+    Description: AWS Secrets Manager secret containing DB credentials
+    Value: !Ref AuroraDBSecret
+  HotelName:
+    Description: AWS Paramter Store value containing Hotel's name
+    Value: !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${HotelNameParam}
+
