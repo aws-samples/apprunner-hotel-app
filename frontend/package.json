@@ -1,9 +1,9 @@
 {
-  "name": "apprunner-hotel-app-3",
+  "name": "apprunner-hotel-app-frontend",
   "version": "3.0.0",
   "private": true,
   "scripts": {
-    "start": "node --require './create-a-tracer.js' ./bin/www"
+    "start": "node --require ./bin/www"
   },
   "dependencies": {
     "@aws-sdk/client-secrets-manager": "^3.379.1",
@@ -22,6 +22,7 @@
     "@opentelemetry/sdk-trace-web": "^1.15.1",
     "@opentelemetry/semantic-conventions": "^1.15.1",
     "aws-sdk": "^2.1426.0",
+    "body-parser": "^1.20.2",
     "cookie-parser": "~1.4.6",
     "debug": "~4.3.4",
     "express": "~4.18.2",

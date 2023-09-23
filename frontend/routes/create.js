@@ -16,15 +16,33 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-var express = require('express');
-var router = express.Router();
-var config = require('../config');
+const express = require('express');
+const router = express.Router();
+const config = require('../config');
+const https = require("https");
 
-/* display room list */
 router.get('/', function(req, res, next) {
-  var secret = JSON.parse(config.secret.db_secret);
-  secret.password = "Shhhh! It's a secret"
-  res.render('param-list', { menuTitle: config.app.hotel_name, infraParams: config.infra, appParams: config.app, secretParams: secret });
-});
+  var url = config.app.backend + 'create';
+  https.get(url, (resp) => {
+    let body = '';
+    // A chunk of data has been recieved.
+    resp.on('data', (chunk) => {
+      body += chunk;
+    });
+    // The whole response has been received. Print out the result.
+    resp.on('end', () => {
+      console.log(JSON.parse(body));
+      if(body.includes('error')) {
+        res.render('create', { menuTitle: config.app.hotel_name, url: url, result: JSON.parse(body).error });
+      }
+      else {
+        res.render('create', { menuTitle: config.app.hotel_name, url: url, result: JSON.parse(body).status });
+      } 
+      
+    });
+  }).on('error', function(e) {
+    console.log("Got error: " + e.message);
+  });
+}); 
 
 module.exports = router;

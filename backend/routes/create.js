@@ -16,40 +16,51 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-var express = require('express');
-var router = express.Router();
-var config = require('../config');
-var rds = require('../rds');
+const express = require('express');
+const router = express.Router();
+const rds = require('../rds');
 
-router.get('/', function(req, res, next) {
-  const [pool, rdsUrl] = rds();
-  pool.getConnection(function(err, con){
-    if (err) {
-      next(err);
+function createTable(req, res) {
+  const [pool, url] = rds();
+  pool.getConnection(function(error, con) {
+    if (error) {
+        return res.status(500).json({ error: error });
     }
     else {
       console.log("Create table in database if not exists!");
 
       con.query('CREATE DATABASE IF NOT EXISTS hotel;', function(error, result, fields) {
-        if (err) throw err;
-        console.log(result);
+        if (error) {
+            console.log(error);
+            res.status(500).json({ error: error });
+        }
       });
   
       con.query('USE hotel;', function(error, result, fields) {
-        if (err) throw err;
-        console.log(result);
+        if (error) {
+            console.log(error);
+            res.status(500).json({ error: error });
+        }
       });
   
       con.query('CREATE TABLE IF NOT EXISTS rooms(id int NOT NULL, floor int, hasView boolean, occupied boolean, comment varchar(60), PRIMARY KEY(id));', function(error, result, fields) {
-        if (err) throw err;
-        console.log(result);
+        if (error) {
+            console.log(error);
+            res.status(500).json({ error: error });
+        }
+        res.status(200).json({status: 'success'})
       });
-  
       con.release();     
     }
   });
+}
 
-  res.render('create', { menuTitle: config.app.hotel_name, url: rdsUrl });
+router.get('/', function(req, res, next) {
+  try {
+    createTable(req, res);
+  } catch (err) {
+    next(err);
+  }
 });
 
 module.exports = router;

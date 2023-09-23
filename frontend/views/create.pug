@@ -21,6 +21,7 @@ block content
             a.nav-link(href='/params') Parameters
 
   p
-  .alert.alert-info(style='margin: auto; width: 80%', role='alert') Created schema in database: #{url}
-  p
-  h2(style='text-align: center;') Success!
+  .alert.alert-info(style='margin: auto; width: 80%', role='alert') Creating DB schema via backend: #{url}
+  if (typeof(result) !== 'undefined')
+    div.results(style='margin: auto; margin-top: 15px; width: 40%; background-color: #f3da6c')
+        p !{JSON.stringify(result, null, 4)}

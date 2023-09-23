@@ -16,13 +16,31 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-var express = require('express');
-var router = express.Router();
-var config = require('../config');
+const express = require('express');
+const router = express.Router();
+const config = require('../config');
+const https = require("https")
 
-/* GET home page. */
+/* display room list */
 router.get('/', function(req, res, next) {
-  res.render('index', { title: config.app.hotel_name, menuTitle: config.app.hotel_name });
-});
+  var url = config.app.backend + 'room';
+  var body = '';
+  https.get(url, (resp) => {
+    // A chunk of data has been recieved.
+    resp.on('data', (chunk) => {
+      body += chunk;
+    });
+    // The whole response has been received. Print out the result.
+    resp.on('end', () => {
+      console.log(JSON.parse(body).rooms);
+      res.render('room-list', { title: 'Room List', menuTitle: config.app.hotel_name, url: url, rooms: JSON.parse(body).rooms});
+    });
+  }).on('error', function(e) {
+    console.log("Got error: " + e.message);
+    next(e);
+  });
+
+}); 
+
 
 module.exports = router;

@@ -10,7 +10,7 @@ block content
       #navbarNav.collapse.navbar-collapse
         ul.navbar-nav
           li.nav-item
-            a.nav-link.active(href='/#') Home
+          a.nav-link.active(href='/#') Home
           li.nav-item
             a.nav-link(href='/rooms') Rooms
           li.nav-item
@@ -18,28 +18,32 @@ block content
           li.nav-item
             a.nav-link(href='/create') Create
           li.nav-item
-              a.nav-link(href='/params') Parameters
-
+            a.nav-link(href='/params') Parameters
   p
-  .alert.alert-info(style='margin: auto; width: 80%', role='alert') Rooms stored in database: #{url}
-  p
-  h2(style='text-align: center;') Rooms List
+    h2(style='text-align: center;') Infrastructure Parameters
 
   table.table.table-striped.table-hover(style='margin-left: auto; margin-right: auto; width: 60%;')
     thead.table-primary
       tr
-        th(scope='col') #
-        th(scope='col') Room Number
-        th(scope='col') Floor Number
-        th(scope='col') Good View
+        th(scope='col') Key
+        th(scope='col') Value
     tbody(style='background-color: white')
-      each room, i in rooms
+      each key, value in infraParams
         tr
-          th(scope='row')= i+1
-          td= room.id
-          td= room.floor
-          td
-            if(room.hasView == 1)
-              span.badge.rounded-pill.bg-success Yes
-            else
-              span.badge.rounded-pill.bg-danger No
+          td= value
+          td= key
+  
+  p
+    h2(style='text-align: center;') Application Parameters
+
+  table.table.table-striped.table-hover(style='margin-left: auto; margin-right: auto; width: 60%;')
+    thead.table-primary
+      tr
+        th(scope='col') Key
+        th(scope='col') Value
+    tbody(style='background-color: white')
+      each key, value in appParams
+        tr
+          td= value
+          td= key
+

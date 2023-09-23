@@ -39,6 +39,10 @@ block content
         p
         div.actions
           button.btn.btn-primary(type='submit' style='margin-left: 15px;') Add room
-  if result
-    div.results
-        p(style='margin-left: 15px; margin-top: 15px;') Room number #{result.roomId} added
+  
+  if (typeof(result) !== 'undefined')
+    div.results(style='margin-left: 15px; margin-top: 15px; width: 20%; background-color: #f3da6c')
+        p !{JSON.stringify(result, null, 4)}
+
+
+  
