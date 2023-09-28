@@ -14,7 +14,7 @@ This project provisions the base layer infrastructure to demonstrate how AppRunn
 * Secrets Manager for DB credentials
 
 ## Deployment Instructions
-Coming Soon!
+[https://aws.amazon.com/blogs/containers/aws-app-runner-adds-support-for-monorepos/](https://aws.amazon.com/blogs/containers/aws-app-runner-adds-support-for-monorepos/)
 
 ## Teardown Instructions
 
