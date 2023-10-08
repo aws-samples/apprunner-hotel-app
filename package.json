@@ -28,7 +28,7 @@
     "http-errors": "~2.0.0",
     "morgan": "~1.10.0",
     "mysql": "^2.18.1",
-    "postcss": "^8.4.27",
+    "postcss": "^8.4.31",
     "postcss-nested": "^6.0.1",
     "postcss-preset-env": "^9.1.0",
     "pug": "^3.0.2"
