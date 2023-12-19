@@ -473,6 +473,7 @@ Resources:
       InstanceType: t2.small
       Name: "AppRunnerWorkshop"
       SubnetId: !Ref PublicSubnet1
+      ImageId: amazonlinux-2023-x86_64
 
 
 Outputs:
@@ -482,4 +483,3 @@ Outputs:
   HotelName:
     Description: AWS Paramter Store value containing Hotel's name
     Value: !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${HotelNameParam}
-
