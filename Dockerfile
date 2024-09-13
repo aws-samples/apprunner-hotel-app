@@ -1,4 +1,4 @@
-FROM node:16.20.0-alpine3.17
+FROM node:16-slim
 
 RUN apk update && apk upgrade
 
