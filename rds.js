@@ -13,7 +13,8 @@ function rds() {
     throw new Error('MYSQL_SECRET environment variable must be set');
   }
   
-  const secret = JSON.parse(config.secret.db_secret);
+  const secret = JSON.parse(config.secret.db_secret_value);
+  console.log('Retrieved secret: ', secret);
   rdsUrl = secret.host;
   console.log(`Connecting to RDS at ${rdsUrl}`);
   
