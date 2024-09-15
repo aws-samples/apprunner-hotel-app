@@ -1,11 +1,10 @@
 const mysql = require('mysql');
-var config = require('./config');
 var rdsPool = null;
 var rdsUrl = null;
 
 
 function rds() {
-  const configPromise = require('../config');
+  const configPromise = require('./config');
 
   configPromise.then((config) => {
       console.log('Config loaded:', config);
