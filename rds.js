@@ -2,7 +2,6 @@ const mysql = require('mysql');
 var rdsPool = null;
 var rdsUrl = null;
 
-
 function rds() {
   const configPromise = require('./config');
 

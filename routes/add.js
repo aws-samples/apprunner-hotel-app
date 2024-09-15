@@ -37,20 +37,24 @@ configPromise.then((config) => {
         var sql = "INSERT INTO hotel.rooms (id, floor, hasView) VALUES (?, ?, ?)";
         sqlParams = [roomNumber, floorNumber, hasView];
         
-        const [pool, url] = rds();
-        pool.getConnection(function(err, con){
-          if (err) {
-            next(err)
-          }
-          else {
-            con.query(sql, sqlParams, function(err, result, fields) {
-              con.release();
-              if (err) res.send(err);
-              if (result) res.render('add', { title: 'Add new room', view: 'No', result: { roomId: roomNumber } });
-              if (fields) console.log(fields);
+        rds().then(([pool, url]) => {
+            pool.getConnection(function(err, con){
+              if (err) {
+                next(err)
+              }
+              else {
+                con.query(sql, sqlParams, function(err, result, fields) {
+                  con.release();
+                  if (err) res.send(err);
+                  if (result) res.render('add', { title: 'Add new room', view: 'No', result: { roomId: roomNumber } });
+                  if (fields) console.log(fields);
+              });
+              }
+            });
+          }).catch(error => {
+            console.error('Failed to initialize RDS connection:', error);
+            process.exit(1);
           });
-          }
-        });
       } else {
         throw new Error('Missing room id, floor or has view parameters');
       }

@@ -26,33 +26,36 @@ const configPromise = require('../config');
 configPromise.then((config) => {
     console.log('Config loaded:', config);
     router.get('/', function(req, res, next) {
-      const [pool, rdsUrl] = rds();
-      pool.getConnection(function(err, con){
-        if (err) {
-          next(err);
-        }
-        else {
-          console.log("Create table in database if not exists!");
+      rds().then(([pool, url]) => {
+          pool.getConnection(function(err, con){
+            if (err) {
+              next(err);
+            }
+            else {
+              console.log("Create table in database if not exists!");
 
-          con.query('CREATE DATABASE IF NOT EXISTS hotel;', function(error, result, fields) {
-            if (err) throw err;
-            console.log(result);
+              con.query('CREATE DATABASE IF NOT EXISTS hotel;', function(error, result, fields) {
+                if (err) throw err;
+                console.log(result);
+              });
+          
+              con.query('USE hotel;', function(error, result, fields) {
+                if (err) throw err;
+                console.log(result);
+              });
+          
+              con.query('CREATE TABLE IF NOT EXISTS rooms(id int NOT NULL, floor int, hasView boolean, occupied boolean, comment varchar(60), PRIMARY KEY(id));', function(error, result, fields) {
+                if (err) throw err;
+                console.log(result);
+              });
+          
+              con.release();     
+            }
           });
-      
-          con.query('USE hotel;', function(error, result, fields) {
-            if (err) throw err;
-            console.log(result);
-          });
-      
-          con.query('CREATE TABLE IF NOT EXISTS rooms(id int NOT NULL, floor int, hasView boolean, occupied boolean, comment varchar(60), PRIMARY KEY(id));', function(error, result, fields) {
-            if (err) throw err;
-            console.log(result);
-          });
-      
-          con.release();     
-        }
-      });
-
+        }).catch(error => {
+          console.error('Failed to initialize RDS connection:', error);
+          process.exit(1);
+        });
       res.render('create', { menuTitle: config.app.hotel_name, url: rdsUrl });
     });
   }).catch((error) => {
