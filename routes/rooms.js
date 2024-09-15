@@ -18,28 +18,32 @@
 
 var express = require('express');
 var router = express.Router();
-var config = require('../config');
 var rds = require('../rds');
+const configPromise = require('../config');
 
-/* display room list */
-router.get('/', function(req, res, next) {
-  const [pool, url] = rds();
-  pool.getConnection(function(err, con){
-    if (err) {
-      next(err);
-    }
-    else {
-      con.query('SELECT * FROM hotel.rooms', function(error, results, fields) {
-        con.release();
-        if (err) res.send(err);
-        if (results) {
-          res.render('room-list', { title: 'Room List', menuTitle: config.app.hotel_name, url: url, rooms: results});
-  
-          console.log('displayed %d rooms', results.length);
+configPromise.then((config) => {
+    console.log('Config loaded:', config);
+    /* display room list */
+    router.get('/', function(req, res, next) {
+      const [pool, url] = rds();
+      pool.getConnection(function(err, con){
+        if (err) {
+          next(err);
         }
-      });
-    }
-  }); 
-});
-
+        else {
+          con.query('SELECT * FROM hotel.rooms', function(error, results, fields) {
+            con.release();
+            if (err) res.send(err);
+            if (results) {
+              res.render('room-list', { title: 'Room List', menuTitle: config.app.hotel_name, url: url, rooms: results});
+      
+              console.log('displayed %d rooms', results.length);
+            }
+          });
+        }
+      }); 
+    });
+  }).catch((error) => {
+    console.error('Error loading config:', error);
+  });
 module.exports = router;

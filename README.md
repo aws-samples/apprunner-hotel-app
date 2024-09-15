@@ -34,7 +34,7 @@ This project provisions the base layer infrastructure to demonstrate how AppRunn
   - Configure service
     - Environment variable:
       - MYSQL_SECRET: *DBSecret ARN* (Provisioned by base-infra.yaml. See Outputs tab)
-      - HOTEL_NAME: *HotelName ARN* (Provisioned by base-infra.yaml. See Outputs tab)
+      - HOTEL_NAME_PARAM: *HotelName ARN* (Provisioned by base-infra.yaml. See Outputs tab)
     - Security: *AppRunnerHotelAppRole* (Provisioned by base-infra.yaml)
     - Networking: 
       - Custom VPC: *AppRunnerV2NPrototype-RDS-Connector* (Provisioned by infra.yaml)
