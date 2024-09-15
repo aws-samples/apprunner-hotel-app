@@ -18,43 +18,49 @@
 
 var express = require('express');
 var router = express.Router();
-var config = require('../config');
 var rds = require('../rds');
 
-/* Add a new room */
-router.post('/', function (req, res, next) {
-  if (req.body.roomNumber && req.body.floorNumber && req.body.hasView) {
-    
-    const roomNumber = req.body.roomNumber;
-    const floorNumber = req.body.floorNumber;
-    const hasView = req.body.hasView;
+const configPromise = require('../config');
 
-    console.log('New room request received. roomNumber: %s, floorNumber: %s, hasView: %s', roomNumber, floorNumber, hasView);
-    
-    var sql = "INSERT INTO hotel.rooms (id, floor, hasView) VALUES (?, ?, ?)";
-    sqlParams = [roomNumber, floorNumber, hasView];
-    
-    const [pool, url] = rds();
-    pool.getConnection(function(err, con){
-      if (err) {
-        next(err)
-      }
-      else {
-        con.query(sql, sqlParams, function(err, result, fields) {
-          con.release();
-          if (err) res.send(err);
-          if (result) res.render('add', { title: 'Add new room', view: 'No', result: { roomId: roomNumber } });
-          if (fields) console.log(fields);
-      });
+configPromise.then((config) => {
+    console.log('Config loaded:', config);
+    /* Add a new room */
+    router.post('/', function (req, res, next) {
+      if (req.body.roomNumber && req.body.floorNumber && req.body.hasView) {
+        
+        const roomNumber = req.body.roomNumber;
+        const floorNumber = req.body.floorNumber;
+        const hasView = req.body.hasView;
+
+        console.log('New room request received. roomNumber: %s, floorNumber: %s, hasView: %s', roomNumber, floorNumber, hasView);
+        
+        var sql = "INSERT INTO hotel.rooms (id, floor, hasView) VALUES (?, ?, ?)";
+        sqlParams = [roomNumber, floorNumber, hasView];
+        
+        const [pool, url] = rds();
+        pool.getConnection(function(err, con){
+          if (err) {
+            next(err)
+          }
+          else {
+            con.query(sql, sqlParams, function(err, result, fields) {
+              con.release();
+              if (err) res.send(err);
+              if (result) res.render('add', { title: 'Add new room', view: 'No', result: { roomId: roomNumber } });
+              if (fields) console.log(fields);
+          });
+          }
+        });
+      } else {
+        throw new Error('Missing room id, floor or has view parameters');
       }
     });
-  } else {
-    throw new Error('Missing room id, floor or has view parameters');
-  }
-});
 
-router.get('/', function(req, res, next) {
-    res.render('add', { title: 'Add new room', menuTitle: config.app.hotel_name, view: 'No' });
+    router.get('/', function(req, res, next) {
+        res.render('add', { title: 'Add new room', menuTitle: config.app.hotel_name, view: 'No' });
+    });
+}).catch((error) => {
+    console.error('Error loading config:', error);
 });
 
 module.exports = router;

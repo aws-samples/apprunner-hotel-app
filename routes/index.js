@@ -19,10 +19,17 @@
 var express = require('express');
 var router = express.Router();
 var config = require('../config');
+const configPromise = require('../config');
 
-/* GET home page. */
-router.get('/', function(req, res, next) {
-  res.render('index', { title: config.app.hotel_name, menuTitle: config.app.hotel_name });
+configPromise.then((config) => {
+    console.log('Config loaded:', config);
+    /* GET home page. */
+    router.get('/', function(req, res, next) {
+      res.render('index', { title: config.app.hotel_name, menuTitle: config.app.hotel_name });
+    });
+}).catch((error) => {
+    console.error('Error loading config:', error);
 });
 
 module.exports = router;
+

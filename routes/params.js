@@ -18,13 +18,17 @@
 
 var express = require('express');
 var router = express.Router();
-var config = require('../config');
+const configPromise = require('../config');
 
-/* display room list */
-router.get('/', function(req, res, next) {
-  var secret = JSON.parse(config.secret.db_secret);
-  secret.password = "Shhhh! It's a secret"
-  res.render('param-list', { menuTitle: config.app.hotel_name, infraParams: config.infra, appParams: config.app, secretParams: secret });
+configPromise.then((config) => {
+    console.log('Config loaded:', config);
+    /* display room list */
+    router.get('/', function(req, res, next) {
+      var secret = JSON.parse(config.secret.db_secret);
+      secret.password = "Shhhh! It's a secret"
+      res.render('param-list', { menuTitle: config.app.hotel_name, infraParams: config.infra, appParams: config.app, secretParams: secret });
+    });
+}).catch((error) => {
+  console.error('Error loading config:', error);
 });
-
 module.exports = router;
