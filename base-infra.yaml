@@ -412,7 +412,7 @@ Resources:
                Resource: !Ref AuroraDBSecret
              - Effect: Allow
                Action:
-                 - "ssm:GetParameters"
+                 - "ssm:GetParameter"
                Resource: !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${HotelNameParam}
       ManagedPolicyArns:
         - "arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess"
