@@ -26,7 +26,7 @@ const configPromise = require('../config');
 configPromise.then((config) => {
     console.log('Config loaded:', config);
     router.get('/', function(req, res, next) {
-      rds().then(([pool, url]) => {
+      rds().then(([pool, rdsUrl]) => {
           pool.getConnection(function(err, con){
             if (err) {
               next(err);
@@ -51,12 +51,12 @@ configPromise.then((config) => {
           
               con.release();     
             }
+            res.render('create', { menuTitle: config.app.hotel_name, url: rdsUrl });
           });
         }).catch(error => {
           console.error('Failed to initialize RDS connection:', error);
           process.exit(1);
         });
-      res.render('create', { menuTitle: config.app.hotel_name, url: rdsUrl });
     });
   }).catch((error) => {
     console.error('Error loading config:', error);
