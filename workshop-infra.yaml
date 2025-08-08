@@ -473,6 +473,7 @@ Resources:
       InstanceType: t2.small
       Name: "AppRunnerWorkshop"
       SubnetId: !Ref PublicSubnet1
+      ImageId: amazonlinux-2-x86_64      
 
 
 Outputs:
